@@ -1,0 +1,53 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#load excel package
+library(readxl)
+library(dplyr)
+library(lubridate)
+
+#set the working directory
+setwd("C:/Users/194903/Documents/R-Workspace")
+
+OPL <- read_excel("~/DE data/OPL_31May2018110819.xlsx")
+
+ClientIds <- filter(OPL,`Parent Account ID` =="2000726") %>%
+  select(Parent_Account, Client_Partner_Name, Delivery_partner_name, Client_ID, Client_Partner_ID, Delivery_partner_ID,Delivery_partner_name)%>%
+  arrange(Parent_Account,Client_Partner_Name,Client_ID)
+```
+---
+title: `r ClientIds[1,1]` DE NA Report
+author: "PK Mishra"
+date: `r today()`
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+
+```{r ClientData, include=FALSE}
+OnePlanet<- read_excel("~/DE data/OnePlanet_Report_Rawdata_April2018.xlsx", sheet = "OnePlanet_Report_Rawdata")
+ClientData <- filter(OnePlanet,Client_ID %in% ClientIds$Client_ID, DE_Scope=="In Scope", `NA Scope_Ac`=="Yes") %>% 
+  arrange(`Std_Practice`)
+```
+
+
+
+##DE Metrics
+```{r DE_Metrics, echo=FALSE}
+MetricsData <-  select(ClientData, Std_Practice, ServiceLine, Project_ID, Project_Name, Last_KickoffAudit_Dte,Last_StartUpAudit_Dte, `Last_PMR/SMR_conducted_date`,`No_of_PMR/SMRs_conducted`,Category_Name)
+names(MetricsData)[5]<-"KickoffAudit"
+names(MetricsData)[6]<-"StartUpAudit"
+names(MetricsData)[7]<-"PMR_conducted"
+names(MetricsData)[8]<-"#PMRs"
+names(MetricsData)[9]<-"Category"
+knitr::kable(MetricsData)
+```
+
+##Projects Details
+```{r Project_Details, echo=FALSE}
+
+Project_Details <-  select(ClientData, Std_Practice, ServiceLine, Project_ID, Project_Name,PM_ID, PM_Name,Total_FTE, Onsite_FTE)
+
+knitr::kable(Project_Details)
+```
